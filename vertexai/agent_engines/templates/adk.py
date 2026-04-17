@@ -26,7 +26,6 @@ from typing import (
 
 import asyncio
 from collections.abc import Awaitable
-import os
 import queue
 import sys
 import threading
@@ -394,12 +393,11 @@ def _default_instrumentor_builder(
         session = google.auth.transport.requests.AuthorizedSession(
             credentials=credentials
         )
-        session.configure_mtls_channel()
-        print("configure_mtls_channel done")
+        print("On L398")
         span_exporter = (
             opentelemetry.exporter.otlp.proto.http.trace_exporter.OTLPSpanExporter(
                 session,
-                endpoint="https://telemetry.mtls.googleapis.com/v1/traces",
+                endpoint="https://telemetry.googleapis.com/v1/traces",
                 headers={"User-Agent": user_agent},
             )
         )
@@ -555,11 +553,10 @@ def _warn_if_telemetry_api_disabled():
     except (ImportError, AttributeError):
         return
     credentials, project = google.auth.default()
-    print("in warn terlemetery before configure mtls")
+    print("in warn terlemetery before session L557")
     session = google.auth.transport.requests.AuthorizedSession(credentials=credentials)
-    session.configure_mtls_channel()
-    print("post configure mtls")
-    r = session.post("https://telemetry.mtls.googleapis.com/v1/traces", data=None)
+    print("On L559")
+    r = session.post("https://telemetry.googleapis.com/v1/traces", data=None)
     print("after session post call")
     if "Telemetry API has not been used in project" in r.text:
         _warn(_TELEMETRY_API_DISABLED_WARNING % (project, project))
@@ -813,7 +810,6 @@ class AdkApp:
         from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 
         os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
-        os.environ["GOOGLE_API_USE_CLIENT_CERTIFICATE"] = "true"
         project = self._tmpl_attrs.get("project")
         if project:
             os.environ["GOOGLE_CLOUD_PROJECT"] = project
