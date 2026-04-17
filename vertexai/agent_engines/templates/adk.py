@@ -396,7 +396,7 @@ def _default_instrumentor_builder(
         print("On L398")
         span_exporter = (
             opentelemetry.exporter.otlp.proto.http.trace_exporter.OTLPSpanExporter(
-                session,
+                session=session,
                 endpoint="https://telemetry.googleapis.com/v1/traces",
                 headers={"User-Agent": user_agent},
             )
