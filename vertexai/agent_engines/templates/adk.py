@@ -390,12 +390,13 @@ def _default_instrumentor_builder(
         vertex_sdk_version = aip_version.__version__
         otlp_http_version = opentelemetry.exporter.otlp.proto.http.version.__version__
         user_agent = f"Vertex-Agent-Engine/{vertex_sdk_version} OTel-OTLP-Exporter-Python/{otlp_http_version}"
-
+        session = google.auth.transport.requests.AuthorizedSession(
+            credentials=credentials
+        )
+        print("On L398")
         span_exporter = (
             opentelemetry.exporter.otlp.proto.http.trace_exporter.OTLPSpanExporter(
-                session=google.auth.transport.requests.AuthorizedSession(
-                    credentials=credentials
-                ),
+                session=session,
                 endpoint="https://telemetry.googleapis.com/v1/traces",
                 headers={"User-Agent": user_agent},
             )
@@ -552,8 +553,11 @@ def _warn_if_telemetry_api_disabled():
     except (ImportError, AttributeError):
         return
     credentials, project = google.auth.default()
+    print("in warn terlemetery before session L557")
     session = google.auth.transport.requests.AuthorizedSession(credentials=credentials)
+    print("On L559")
     r = session.post("https://telemetry.googleapis.com/v1/traces", data=None)
+    print("after session post call")
     if "Telemetry API has not been used in project" in r.text:
         _warn(_TELEMETRY_API_DISABLED_WARNING % (project, project))
 
@@ -806,6 +810,7 @@ class AdkApp:
         from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
 
         os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "1"
+        os.environ["GOOGLE_API_PREVENT_AGENT_TOKEN_SHARING_FOR_GCP_SERVICES"] = "false"
         project = self._tmpl_attrs.get("project")
         if project:
             os.environ["GOOGLE_CLOUD_PROJECT"] = project
